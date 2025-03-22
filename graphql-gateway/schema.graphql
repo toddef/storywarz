@@ -1,0 +1,387 @@
+directive @auth on FIELD_DEFINITION
+
+scalar Time
+scalar Upload
+
+type Query {
+  # User queries
+  me: User!
+  user(id: ID!): User
+  searchUsers(query: String!, limit: Int = 10): [User!]!
+
+  # Lobby queries
+  lobby(id: ID!): Lobby
+  lobbies(filter: LobbyFilter, limit: Int = 10, offset: Int = 0): LobbyConnection!
+  
+  # Game queries
+  game(id: ID!): Game
+  myGames(status: GameStatus, limit: Int = 10, offset: Int = 0): GameConnection!
+  gameEntry(id: ID!): Entry
+  
+  # Prompt queries
+  prompt(id: ID!): Prompt
+  prompts(filter: PromptFilter, limit: Int = 10, offset: Int = 0): PromptConnection!
+  promptCategories: [Category!]!
+  
+  # Leaderboard queries
+  leaderboard(timeFrame: LeaderboardTimeFrame! = ALL_TIME, limit: Int = 10): [LeaderboardEntry!]!
+  playerStats(userId: ID!): PlayerStats
+}
+
+type Mutation {
+  # User mutations
+  register(input: RegisterInput!): AuthPayload!
+  login(input: LoginInput!): AuthPayload!
+  updateProfile(input: UpdateProfileInput!): User!
+  changePassword(input: ChangePasswordInput!): Boolean!
+
+  # Lobby mutations
+  createLobby(input: CreateLobbyInput!): Lobby!
+  joinLobby(id: ID!): JoinLobbyPayload!
+  leaveLobby(id: ID!): Boolean!
+  updateLobbySettings(id: ID!, settings: LobbySettingsInput!): Lobby!
+  startGame(lobbyId: ID!): Game!
+  
+  # Game mutations
+  submitEntry(input: SubmitEntryInput!): Entry!
+  voteOnEntry(input: VoteInput!): Boolean!
+  
+  # Prompt mutations
+  submitPrompt(input: SubmitPromptInput!): PromptSubmission!
+  
+  # Notifications
+  markNotificationRead(id: ID!): Boolean!
+  markAllNotificationsRead: Boolean!
+  updateNotificationPreferences(input: NotificationPreferencesInput!): NotificationPreferences!
+}
+
+type Subscription {
+  lobbyUpdated(id: ID!): Lobby!
+  gameUpdated(id: ID!): Game!
+  roundStarted(gameId: ID!): Round!
+  roundEnded(gameId: ID!): Round!
+  newNotification: Notification!
+}
+
+# User types
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  displayName: String!
+  avatarUrl: String
+  createdAt: Time!
+  stats: PlayerStats
+  games(status: GameStatus, limit: Int = 10): GameConnection!
+  notifications(includeRead: Boolean = false, limit: Int = 10): [Notification!]!
+  notificationPreferences: NotificationPreferences!
+}
+
+input RegisterInput {
+  username: String!
+  email: String!
+  password: String!
+  displayName: String!
+}
+
+input LoginInput {
+  usernameOrEmail: String!
+  password: String!
+}
+
+input UpdateProfileInput {
+  displayName: String
+  email: String
+  avatarUrl: String
+}
+
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+# Lobby types
+type Lobby {
+  id: ID!
+  name: String!
+  hostUser: User!
+  participants: [User!]!
+  settings: LobbySettings!
+  status: LobbyStatus!
+  createdAt: Time!
+  updatedAt: Time!
+  maxParticipants: Int!
+  messages(limit: Int = 20, before: ID): [ChatMessage!]!
+}
+
+enum LobbyStatus {
+  WAITING
+  STARTING
+  IN_GAME
+  FINISHED
+}
+
+type LobbySettings {
+  isPublic: Boolean!
+  roundTimeSeconds: Int!
+  maxRounds: Int!
+  allowSpectators: Boolean!
+  gameMode: String!
+  promptCategories: [String!]!
+}
+
+input LobbySettingsInput {
+  isPublic: Boolean
+  roundTimeSeconds: Int
+  maxRounds: Int
+  allowSpectators: Boolean
+  gameMode: String
+  promptCategories: [String!]
+}
+
+input LobbyFilter {
+  isPublic: Boolean
+  includeFull: Boolean
+  gameMode: String
+}
+
+type LobbyConnection {
+  edges: [Lobby!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+type ChatMessage {
+  id: ID!
+  lobbyId: ID!
+  user: User!
+  content: String!
+  createdAt: Time!
+}
+
+type JoinLobbyPayload {
+  success: Boolean!
+  lobby: Lobby
+  error: String
+}
+
+# Game types
+type Game {
+  id: ID!
+  status: GameStatus!
+  players: [User!]!
+  maxRounds: Int!
+  currentRound: Int!
+  roundTimeSeconds: Int!
+  prompt: Prompt
+  gameMode: String!
+  createdAt: Time!
+  updatedAt: Time!
+  creator: User!
+  rounds: [Round!]!
+  results: [GameResult!]
+}
+
+enum GameStatus {
+  CREATED
+  STARTING
+  IN_PROGRESS
+  SCORING
+  FINISHED
+  CANCELLED
+}
+
+type GameConnection {
+  edges: [Game!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+type Round {
+  id: ID!
+  gameId: ID!
+  roundNumber: Int!
+  status: RoundStatus!
+  startTime: Time!
+  endTime: Time
+  promptText: String!
+  entries: [Entry!]
+  scores: [RoundScore!]
+}
+
+enum RoundStatus {
+  WAITING
+  IN_PROGRESS
+  SCORING
+  FINISHED
+}
+
+type Entry {
+  id: ID!
+  gameId: ID!
+  roundId: ID!
+  player: User!
+  content: String!
+  submittedAt: Time!
+  votes: [Vote!]
+  score: Int
+}
+
+input SubmitEntryInput {
+  gameId: ID!
+  roundId: ID!
+  content: String!
+}
+
+type Vote {
+  id: ID!
+  entry: Entry!
+  voter: User!
+  score: Int!
+  createdAt: Time!
+}
+
+input VoteInput {
+  entryId: ID!
+  score: Int!
+}
+
+type RoundScore {
+  player: User!
+  roundId: ID!
+  score: Int!
+  voteCount: Int!
+  rank: Int!
+}
+
+type GameResult {
+  player: User!
+  gameId: ID!
+  totalScore: Int!
+  winningRounds: Int!
+  finalRank: Int!
+}
+
+# Prompt types
+type Prompt {
+  id: ID!
+  text: String!
+  categories: [Category!]!
+  status: PromptStatus!
+  createdBy: User
+  createdAt: Time!
+  updatedAt: Time!
+  usageCount: Int!
+  averageRating: Float!
+}
+
+enum PromptStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_REVIEW
+  REJECTED
+}
+
+type Category {
+  id: ID!
+  name: String!
+  description: String!
+  createdAt: Time!
+  promptCount: Int!
+}
+
+input PromptFilter {
+  categories: [ID!]
+  status: PromptStatus
+}
+
+type PromptConnection {
+  edges: [Prompt!]!
+  totalCount: Int!
+  hasMore: Boolean!
+}
+
+input SubmitPromptInput {
+  text: String!
+  categoryIds: [ID!]!
+}
+
+type PromptSubmission {
+  id: ID!
+  text: String!
+  categories: [Category!]!
+  submittedBy: User!
+  submittedAt: Time!
+  status: PromptStatus!
+}
+
+# Scoring types
+type PlayerStats {
+  playerId: ID!
+  gamesPlayed: Int!
+  gamesWon: Int!
+  totalScore: Int!
+  roundsWon: Int!
+  avgScorePerRound: Float!
+  lastUpdated: Time!
+}
+
+type LeaderboardEntry {
+  player: User!
+  score: Int!
+  rank: Int!
+  gamesPlayed: Int!
+  gamesWon: Int!
+}
+
+enum LeaderboardTimeFrame {
+  DAILY
+  WEEKLY
+  MONTHLY
+  ALL_TIME
+}
+
+# Notification types
+type Notification {
+  id: ID!
+  user: User!
+  type: NotificationType!
+  title: String!
+  content: String!
+  data: JSON
+  isRead: Boolean!
+  createdAt: Time!
+  actionUrl: String
+}
+
+enum NotificationType {
+  GAME_INVITATION
+  TURN_REMINDER
+  GAME_STARTED
+  ROUND_STARTED
+  ROUND_ENDED
+  GAME_ENDED
+  FRIEND_REQUEST
+  ACHIEVEMENT
+  SYSTEM
+}
+
+type NotificationPreferences {
+  inAppEnabled: JSON!
+  emailEnabled: JSON!
+  marketingEmails: Boolean!
+  updatedAt: Time!
+}
+
+input NotificationPreferencesInput {
+  inAppEnabled: JSON
+  emailEnabled: JSON
+  marketingEmails: Boolean
+}
+
+scalar JSON 

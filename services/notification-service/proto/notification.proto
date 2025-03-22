@@ -1,0 +1,182 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "github.com/storywarz/notification-service/proto";
+
+// NotificationService manages notifications and real-time updates
+service NotificationService {
+  // SendNotification sends a notification to one or more users
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse) {}
+  
+  // GetUserNotifications retrieves notifications for a user
+  rpc GetUserNotifications(GetUserNotificationsRequest) returns (GetUserNotificationsResponse) {}
+  
+  // MarkNotificationRead marks a notification as read
+  rpc MarkNotificationRead(MarkNotificationReadRequest) returns (MarkNotificationReadResponse) {}
+  
+  // MarkAllNotificationsRead marks all notifications for a user as read
+  rpc MarkAllNotificationsRead(MarkAllNotificationsReadRequest) returns (MarkAllNotificationsReadResponse) {}
+  
+  // DeleteNotification removes a notification
+  rpc DeleteNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse) {}
+  
+  // GetUserPreferences retrieves notification preferences for a user
+  rpc GetUserPreferences(GetUserPreferencesRequest) returns (NotificationPreferences) {}
+  
+  // UpdateUserPreferences updates notification preferences for a user
+  rpc UpdateUserPreferences(UpdateUserPreferencesRequest) returns (NotificationPreferences) {}
+  
+  // SendEmail sends an email notification
+  rpc SendEmail(SendEmailRequest) returns (SendEmailResponse) {}
+  
+  // SubscribeToUpdates establishes a streaming connection for real-time updates
+  rpc SubscribeToUpdates(SubscribeToUpdatesRequest) returns (stream NotificationUpdate) {}
+}
+
+// Notification represents a user notification
+message Notification {
+  string id = 1;
+  string user_id = 2;
+  NotificationType type = 3;
+  string title = 4;
+  string content = 5;
+  map<string, string> data = 6;
+  bool is_read = 7;
+  uint64 created_at = 8;
+  string action_url = 9;
+}
+
+// NotificationType represents the category of notification
+enum NotificationType {
+  NOTIFICATION_TYPE_UNSPECIFIED = 0;
+  NOTIFICATION_TYPE_GAME_INVITATION = 1;
+  NOTIFICATION_TYPE_TURN_REMINDER = 2;
+  NOTIFICATION_TYPE_GAME_STARTED = 3;
+  NOTIFICATION_TYPE_ROUND_STARTED = 4;
+  NOTIFICATION_TYPE_ROUND_ENDED = 5;
+  NOTIFICATION_TYPE_GAME_ENDED = 6;
+  NOTIFICATION_TYPE_FRIEND_REQUEST = 7;
+  NOTIFICATION_TYPE_ACHIEVEMENT = 8;
+  NOTIFICATION_TYPE_SYSTEM = 9;
+}
+
+// NotificationPreferences represents user preferences for notifications
+message NotificationPreferences {
+  string user_id = 1;
+  map<string, bool> in_app_enabled = 2;
+  map<string, bool> email_enabled = 3;
+  bool marketing_emails = 4;
+  uint64 updated_at = 5;
+}
+
+// NotificationUpdate represents a real-time update sent to connected clients
+message NotificationUpdate {
+  string user_id = 1;
+  NotificationType type = 2;
+  map<string, string> data = 3;
+  uint64 timestamp = 4;
+}
+
+// SendNotificationRequest is the request payload for sending a notification
+message SendNotificationRequest {
+  repeated string user_ids = 1;
+  NotificationType type = 2;
+  string title = 3;
+  string content = 4;
+  map<string, string> data = 5;
+  string action_url = 6;
+}
+
+// SendNotificationResponse is the response for a send notification request
+message SendNotificationResponse {
+  repeated string notification_ids = 1;
+  uint32 sent_count = 2;
+}
+
+// GetUserNotificationsRequest is the request payload for retrieving user notifications
+message GetUserNotificationsRequest {
+  string user_id = 1;
+  uint32 page_size = 2;
+  string page_token = 3;
+  bool include_read = 4;
+  NotificationType filter_type = 5;
+}
+
+// GetUserNotificationsResponse is the response for a get user notifications request
+message GetUserNotificationsResponse {
+  repeated Notification notifications = 1;
+  string next_page_token = 2;
+  uint32 total_count = 3;
+  uint32 unread_count = 4;
+}
+
+// MarkNotificationReadRequest is the request payload for marking a notification as read
+message MarkNotificationReadRequest {
+  string notification_id = 1;
+  string user_id = 2;
+}
+
+// MarkNotificationReadResponse is the response for a mark notification read request
+message MarkNotificationReadResponse {
+  bool success = 1;
+  Notification notification = 2;
+}
+
+// MarkAllNotificationsReadRequest is the request payload for marking all notifications as read
+message MarkAllNotificationsReadRequest {
+  string user_id = 1;
+  NotificationType filter_type = 2;
+}
+
+// MarkAllNotificationsReadResponse is the response for a mark all notifications read request
+message MarkAllNotificationsReadResponse {
+  uint32 marked_count = 1;
+}
+
+// DeleteNotificationRequest is the request payload for deleting a notification
+message DeleteNotificationRequest {
+  string notification_id = 1;
+  string user_id = 2;
+}
+
+// DeleteNotificationResponse is the response for a delete notification request
+message DeleteNotificationResponse {
+  bool success = 1;
+}
+
+// GetUserPreferencesRequest is the request payload for retrieving user preferences
+message GetUserPreferencesRequest {
+  string user_id = 1;
+}
+
+// UpdateUserPreferencesRequest is the request payload for updating user preferences
+message UpdateUserPreferencesRequest {
+  string user_id = 1;
+  map<string, bool> in_app_enabled = 2;
+  map<string, bool> email_enabled = 3;
+  bool marketing_emails = 4;
+}
+
+// SendEmailRequest is the request payload for sending an email
+message SendEmailRequest {
+  string user_id = 1;
+  string email = 2;
+  string subject = 3;
+  string body_text = 4;
+  string body_html = 5;
+  map<string, string> template_data = 6;
+  string template_id = 7;
+}
+
+// SendEmailResponse is the response for a send email request
+message SendEmailResponse {
+  bool success = 1;
+  string message_id = 2;
+}
+
+// SubscribeToUpdatesRequest is the request payload for subscribing to updates
+message SubscribeToUpdatesRequest {
+  string user_id = 1;
+  repeated NotificationType filter_types = 2;
+} 

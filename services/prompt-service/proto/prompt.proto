@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package prompt;
+
+option go_package = "github.com/storywarz/prompt-service/proto";
+
+// PromptService manages story prompts
+service PromptService {
+  // CreatePrompt adds a new prompt to the system
+  rpc CreatePrompt(CreatePromptRequest) returns (Prompt) {}
+  
+  // GetPrompt retrieves a prompt by ID
+  rpc GetPrompt(GetPromptRequest) returns (Prompt) {}
+  
+  // ListPrompts retrieves prompts based on filters
+  rpc ListPrompts(ListPromptsRequest) returns (ListPromptsResponse) {}
+  
+  // GetRandomPrompt selects a random prompt based on criteria
+  rpc GetRandomPrompt(GetRandomPromptRequest) returns (Prompt) {}
+  
+  // UpdatePrompt modifies an existing prompt
+  rpc UpdatePrompt(UpdatePromptRequest) returns (Prompt) {}
+  
+  // DeletePrompt removes a prompt
+  rpc DeletePrompt(DeletePromptRequest) returns (DeletePromptResponse) {}
+  
+  // CreateCategory adds a new prompt category
+  rpc CreateCategory(CreateCategoryRequest) returns (Category) {}
+  
+  // ListCategories retrieves all available prompt categories
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse) {}
+  
+  // SubmitUserPrompt allows users to submit custom prompts
+  rpc SubmitUserPrompt(SubmitUserPromptRequest) returns (UserPromptSubmission) {}
+  
+  // ReviewUserPrompt approves or rejects a user-submitted prompt
+  rpc ReviewUserPrompt(ReviewUserPromptRequest) returns (ReviewUserPromptResponse) {}
+}
+
+// Prompt represents a story prompt
+message Prompt {
+  string id = 1;
+  string text = 2;
+  repeated string category_ids = 3;
+  PromptStatus status = 4;
+  string created_by = 5;
+  uint64 created_at = 6;
+  uint64 updated_at = 7;
+  uint32 usage_count = 8;
+  double average_rating = 9;
+}
+
+// PromptStatus represents the approval status of a prompt
+enum PromptStatus {
+  PROMPT_STATUS_UNSPECIFIED = 0;
+  PROMPT_STATUS_ACTIVE = 1;
+  PROMPT_STATUS_INACTIVE = 2;
+  PROMPT_STATUS_PENDING_REVIEW = 3;
+  PROMPT_STATUS_REJECTED = 4;
+}
+
+// Category represents a prompt category
+message Category {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  uint64 created_at = 4;
+  uint32 prompt_count = 5;
+}
+
+// UserPromptSubmission represents a user-submitted prompt
+message UserPromptSubmission {
+  string id = 1;
+  string text = 2;
+  repeated string category_ids = 3;
+  string submitted_by = 4;
+  uint64 submitted_at = 5;
+  PromptStatus status = 6;
+  string review_notes = 7;
+  string reviewed_by = 8;
+  uint64 reviewed_at = 9;
+}
+
+// CreatePromptRequest is the request payload for creating a prompt
+message CreatePromptRequest {
+  string text = 1;
+  repeated string category_ids = 2;
+  string created_by = 3;
+}
+
+// GetPromptRequest is the request payload for retrieving a prompt
+message GetPromptRequest {
+  string id = 1;
+}
+
+// ListPromptsRequest is the request payload for listing prompts
+message ListPromptsRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+  repeated string category_ids = 3;
+  PromptStatus status = 4;
+}
+
+// ListPromptsResponse is the response for a list prompts request
+message ListPromptsResponse {
+  repeated Prompt prompts = 1;
+  string next_page_token = 2;
+  uint32 total_count = 3;
+}
+
+// GetRandomPromptRequest is the request payload for getting a random prompt
+message GetRandomPromptRequest {
+  repeated string category_ids = 1;
+  repeated string excluded_ids = 2;
+}
+
+// UpdatePromptRequest is the request payload for updating a prompt
+message UpdatePromptRequest {
+  string id = 1;
+  string text = 2;
+  repeated string category_ids = 3;
+  PromptStatus status = 4;
+}
+
+// DeletePromptRequest is the request payload for deleting a prompt
+message DeletePromptRequest {
+  string id = 1;
+}
+
+// DeletePromptResponse is the response for a delete prompt request
+message DeletePromptResponse {
+  bool success = 1;
+}
+
+// CreateCategoryRequest is the request payload for creating a category
+message CreateCategoryRequest {
+  string name = 1;
+  string description = 2;
+}
+
+// ListCategoriesRequest is the request payload for listing categories
+message ListCategoriesRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+}
+
+// ListCategoriesResponse is the response for a list categories request
+message ListCategoriesResponse {
+  repeated Category categories = 1;
+  string next_page_token = 2;
+  uint32 total_count = 3;
+}
+
+// SubmitUserPromptRequest is the request payload for submitting a user prompt
+message SubmitUserPromptRequest {
+  string text = 1;
+  repeated string category_ids = 2;
+  string submitted_by = 3;
+}
+
+// ReviewUserPromptRequest is the request payload for reviewing a user prompt
+message ReviewUserPromptRequest {
+  string id = 1;
+  PromptStatus status = 2;
+  string review_notes = 3;
+  string reviewed_by = 4;
+}
+
+// ReviewUserPromptResponse is the response for a review user prompt request
+message ReviewUserPromptResponse {
+  bool success = 1;
+  UserPromptSubmission submission = 2;
+} 

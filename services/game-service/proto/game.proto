@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+package game;
+
+option go_package = "github.com/storywarz/game-service/proto";
+
+// GameService manages game mechanics and state
+service GameService {
+  // CreateGame initializes a new game
+  rpc CreateGame(CreateGameRequest) returns (Game) {}
+  
+  // GetGame retrieves game details by ID
+  rpc GetGame(GetGameRequest) returns (Game) {}
+  
+  // StartRound begins a new round in the game
+  rpc StartRound(StartRoundRequest) returns (Round) {}
+  
+  // SubmitEntry adds a player's story entry for the current round
+  rpc SubmitEntry(SubmitEntryRequest) returns (SubmitEntryResponse) {}
+  
+  // GetPlayerEntries retrieves all entries for a player in a game
+  rpc GetPlayerEntries(GetPlayerEntriesRequest) returns (GetPlayerEntriesResponse) {}
+  
+  // GetRoundEntries retrieves all entries for a specific round
+  rpc GetRoundEntries(GetRoundEntriesRequest) returns (GetRoundEntriesResponse) {}
+  
+  // EndRound completes the current round and transitions to the next phase
+  rpc EndRound(EndRoundRequest) returns (EndRoundResponse) {}
+  
+  // EndGame completes the game and finalizes results
+  rpc EndGame(EndGameRequest) returns (EndGameResponse) {}
+}
+
+// Game represents a full game session
+message Game {
+  string id = 1;
+  GameStatus status = 2;
+  repeated string player_ids = 3;
+  uint32 max_rounds = 4;
+  uint32 current_round = 5;
+  uint32 round_time_seconds = 6;
+  string prompt_id = 7;
+  string game_mode = 8;
+  uint64 created_at = 9;
+  uint64 updated_at = 10;
+  string creator_id = 11;
+}
+
+// GameStatus represents the current state of a game
+enum GameStatus {
+  GAME_STATUS_UNSPECIFIED = 0;
+  GAME_STATUS_CREATED = 1;
+  GAME_STATUS_STARTING = 2;
+  GAME_STATUS_IN_PROGRESS = 3;
+  GAME_STATUS_SCORING = 4;
+  GAME_STATUS_FINISHED = 5;
+  GAME_STATUS_CANCELLED = 6;
+}
+
+// Round represents a single round in a game
+message Round {
+  string id = 1;
+  string game_id = 2;
+  uint32 round_number = 3;
+  RoundStatus status = 4;
+  uint64 start_time = 5;
+  uint64 end_time = 6;
+  string prompt_text = 7;
+}
+
+// RoundStatus represents the current state of a round
+enum RoundStatus {
+  ROUND_STATUS_UNSPECIFIED = 0;
+  ROUND_STATUS_WAITING = 1;
+  ROUND_STATUS_IN_PROGRESS = 2;
+  ROUND_STATUS_SCORING = 3;
+  ROUND_STATUS_FINISHED = 4;
+}
+
+// Entry represents a player's story submission
+message Entry {
+  string id = 1;
+  string game_id = 2;
+  string round_id = 3;
+  string player_id = 4;
+  string content = 5;
+  uint64 submitted_at = 6;
+}
+
+// CreateGameRequest is the request payload for creating a new game
+message CreateGameRequest {
+  repeated string player_ids = 1;
+  uint32 max_rounds = 2;
+  uint32 round_time_seconds = 3;
+  string prompt_id = 4;
+  string game_mode = 5;
+  string creator_id = 6;
+}
+
+// GetGameRequest is the request payload for retrieving a game
+message GetGameRequest {
+  string id = 1;
+}
+
+// StartRoundRequest is the request payload for starting a round
+message StartRoundRequest {
+  string game_id = 1;
+  string prompt_text = 2;
+}
+
+// SubmitEntryRequest is the request payload for submitting a story entry
+message SubmitEntryRequest {
+  string game_id = 1;
+  string round_id = 2;
+  string player_id = 3;
+  string content = 4;
+}
+
+// SubmitEntryResponse is the response for a submit entry request
+message SubmitEntryResponse {
+  bool success = 1;
+  Entry entry = 2;
+}
+
+// GetPlayerEntriesRequest is the request payload for retrieving a player's entries
+message GetPlayerEntriesRequest {
+  string game_id = 1;
+  string player_id = 2;
+}
+
+// GetPlayerEntriesResponse is the response for a get player entries request
+message GetPlayerEntriesResponse {
+  repeated Entry entries = 1;
+}
+
+// GetRoundEntriesRequest is the request payload for retrieving round entries
+message GetRoundEntriesRequest {
+  string round_id = 1;
+}
+
+// GetRoundEntriesResponse is the response for a get round entries request
+message GetRoundEntriesResponse {
+  repeated Entry entries = 1;
+}
+
+// EndRoundRequest is the request payload for ending a round
+message EndRoundRequest {
+  string round_id = 1;
+}
+
+// EndRoundResponse is the response for an end round request
+message EndRoundResponse {
+  bool success = 1;
+  uint32 next_round_number = 2;
+}
+
+// EndGameRequest is the request payload for ending a game
+message EndGameRequest {
+  string game_id = 1;
+}
+
+// EndGameResponse is the response for an end game request
+message EndGameResponse {
+  bool success = 1;
+  Game updated_game = 2;
+} 
