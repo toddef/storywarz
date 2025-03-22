@@ -1,0 +1,129 @@
+syntax = "proto3";
+
+package matchmaking;
+
+option go_package = "github.com/storywarz/matchmaking-service/proto";
+
+// MatchmakingService handles player matchmaking
+service MatchmakingService {
+  // FindMatch queues a player for matchmaking
+  rpc FindMatch(FindMatchRequest) returns (FindMatchResponse) {}
+  
+  // CancelMatchmaking removes a player from the matchmaking queue
+  rpc CancelMatchmaking(CancelMatchmakingRequest) returns (CancelMatchmakingResponse) {}
+  
+  // GetMatchmakingStatus checks the status of a matchmaking request
+  rpc GetMatchmakingStatus(GetMatchmakingStatusRequest) returns (MatchmakingStatus) {}
+  
+  // AcceptMatch confirms a player's acceptance of a proposed match
+  rpc AcceptMatch(AcceptMatchRequest) returns (AcceptMatchResponse) {}
+  
+  // DeclineMatch rejects a proposed match
+  rpc DeclineMatch(DeclineMatchRequest) returns (DeclineMatchResponse) {}
+  
+  // CreateCustomMatch sets up a match with specific criteria
+  rpc CreateCustomMatch(CreateCustomMatchRequest) returns (CreateCustomMatchResponse) {}
+}
+
+// MatchCriteria defines preferences for matchmaking
+message MatchCriteria {
+  uint32 skill_min = 1;
+  uint32 skill_max = 2;
+  repeated string preferred_modes = 3;
+  uint32 max_wait_time_seconds = 4;
+  repeated string regions = 5;
+}
+
+// FindMatchRequest is the request payload for finding a match
+message FindMatchRequest {
+  string user_id = 1;
+  MatchCriteria criteria = 2;
+}
+
+// FindMatchResponse is the response for a find match request
+message FindMatchResponse {
+  string match_id = 1;
+  uint32 estimated_wait_time_seconds = 2;
+}
+
+// CancelMatchmakingRequest is the request payload for canceling matchmaking
+message CancelMatchmakingRequest {
+  string user_id = 1;
+  string match_id = 2;
+}
+
+// CancelMatchmakingResponse is the response for a cancel matchmaking request
+message CancelMatchmakingResponse {
+  bool success = 1;
+}
+
+// GetMatchmakingStatusRequest is the request payload for checking matchmaking status
+message GetMatchmakingStatusRequest {
+  string user_id = 1;
+  string match_id = 2;
+}
+
+// MatchmakingStatus is the current status of a matchmaking request
+message MatchmakingStatus {
+  MatchmakingState state = 1;
+  uint32 elapsed_time_seconds = 2;
+  uint32 queue_position = 3;
+  uint32 players_needed = 4;
+  ProposedMatch proposed_match = 5;
+}
+
+// MatchmakingState represents the current state of matchmaking
+enum MatchmakingState {
+  MATCHMAKING_STATE_UNSPECIFIED = 0;
+  MATCHMAKING_STATE_QUEUED = 1;
+  MATCHMAKING_STATE_MATCH_PROPOSED = 2;
+  MATCHMAKING_STATE_MATCH_READY = 3;
+  MATCHMAKING_STATE_MATCH_CREATING = 4;
+  MATCHMAKING_STATE_MATCH_CREATED = 5;
+  MATCHMAKING_STATE_FAILED = 6;
+  MATCHMAKING_STATE_CANCELLED = 7;
+}
+
+// ProposedMatch represents a potential match that requires confirmation
+message ProposedMatch {
+  string id = 1;
+  repeated string player_ids = 2;
+  string game_mode = 3;
+  uint32 accept_deadline_timestamp = 4;
+  string region = 5;
+}
+
+// AcceptMatchRequest is the request payload for accepting a match
+message AcceptMatchRequest {
+  string user_id = 1;
+  string match_id = 2;
+}
+
+// AcceptMatchResponse is the response for an accept match request
+message AcceptMatchResponse {
+  bool success = 1;
+}
+
+// DeclineMatchRequest is the request payload for declining a match
+message DeclineMatchRequest {
+  string user_id = 1;
+  string match_id = 2;
+}
+
+// DeclineMatchResponse is the response for a decline match request
+message DeclineMatchResponse {
+  bool success = 1;
+}
+
+// CreateCustomMatchRequest is the request payload for creating a custom match
+message CreateCustomMatchRequest {
+  string creator_user_id = 1;
+  MatchCriteria criteria = 2;
+  repeated string invited_user_ids = 3;
+}
+
+// CreateCustomMatchResponse is the response for a create custom match request
+message CreateCustomMatchResponse {
+  string match_id = 1;
+  string invite_code = 2;
+} 

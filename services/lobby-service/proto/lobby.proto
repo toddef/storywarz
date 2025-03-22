@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+package lobby;
+
+option go_package = "github.com/storywarz/lobby-service/proto";
+
+// LobbyService manages game lobbies
+service LobbyService {
+  // CreateLobby creates a new game lobby
+  rpc CreateLobby(CreateLobbyRequest) returns (Lobby) {}
+  
+  // GetLobby retrieves a lobby by ID
+  rpc GetLobby(GetLobbyRequest) returns (Lobby) {}
+  
+  // ListLobbies retrieves a list of available lobbies
+  rpc ListLobbies(ListLobbiesRequest) returns (ListLobbiesResponse) {}
+  
+  // JoinLobby adds a user to a lobby
+  rpc JoinLobby(JoinLobbyRequest) returns (JoinLobbyResponse) {}
+  
+  // LeaveLobby removes a user from a lobby
+  rpc LeaveLobby(LeaveLobbyRequest) returns (LeaveLobbyResponse) {}
+  
+  // UpdateLobbySettings updates lobby configuration
+  rpc UpdateLobbySettings(UpdateLobbySettingsRequest) returns (Lobby) {}
+  
+  // StartGame transitions a lobby to game state
+  rpc StartGame(StartGameRequest) returns (StartGameResponse) {}
+  
+  // SendChatMessage sends a chat message in a lobby
+  rpc SendChatMessage(SendChatMessageRequest) returns (ChatMessage) {}
+  
+  // GetLobbyMessages retrieves chat history for a lobby
+  rpc GetLobbyMessages(GetLobbyMessagesRequest) returns (GetLobbyMessagesResponse) {}
+}
+
+// Lobby represents a game lobby
+message Lobby {
+  string id = 1;
+  string name = 2;
+  string host_user_id = 3;
+  repeated string participant_ids = 4;
+  LobbySettings settings = 5;
+  LobbyStatus status = 6;
+  uint64 created_at = 7;
+  uint64 updated_at = 8;
+  uint32 max_participants = 9;
+}
+
+// LobbySettings contains configuration for a lobby
+message LobbySettings {
+  bool is_public = 1;
+  uint32 round_time_seconds = 2;
+  uint32 max_rounds = 3;
+  bool allow_spectators = 4;
+  string game_mode = 5;
+  repeated string prompt_categories = 6;
+}
+
+// LobbyStatus represents the current state of a lobby
+enum LobbyStatus {
+  LOBBY_STATUS_UNSPECIFIED = 0;
+  LOBBY_STATUS_WAITING = 1;
+  LOBBY_STATUS_STARTING = 2;
+  LOBBY_STATUS_IN_GAME = 3;
+  LOBBY_STATUS_FINISHED = 4;
+}
+
+// CreateLobbyRequest is the request payload for creating a new lobby
+message CreateLobbyRequest {
+  string name = 1;
+  string host_user_id = 2;
+  LobbySettings settings = 3;
+  uint32 max_participants = 4;
+}
+
+// GetLobbyRequest is the request payload for retrieving a lobby
+message GetLobbyRequest {
+  string id = 1;
+}
+
+// ListLobbiesRequest is the request payload for listing available lobbies
+message ListLobbiesRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+  bool include_full = 3;
+  bool public_only = 4;
+}
+
+// ListLobbiesResponse is the response payload for listing lobbies
+message ListLobbiesResponse {
+  repeated Lobby lobbies = 1;
+  string next_page_token = 2;
+  uint32 total_count = 3;
+}
+
+// JoinLobbyRequest is the request payload for joining a lobby
+message JoinLobbyRequest {
+  string lobby_id = 1;
+  string user_id = 2;
+}
+
+// JoinLobbyResponse is the response for a join lobby request
+message JoinLobbyResponse {
+  bool success = 1;
+  Lobby lobby = 2;
+}
+
+// LeaveLobbyRequest is the request payload for leaving a lobby
+message LeaveLobbyRequest {
+  string lobby_id = 1;
+  string user_id = 2;
+}
+
+// LeaveLobbyResponse is the response for a leave lobby request
+message LeaveLobbyResponse {
+  bool success = 1;
+}
+
+// UpdateLobbySettingsRequest is the request payload for updating lobby settings
+message UpdateLobbySettingsRequest {
+  string lobby_id = 1;
+  string user_id = 2;
+  LobbySettings settings = 3;
+}
+
+// StartGameRequest is the request payload for starting a game
+message StartGameRequest {
+  string lobby_id = 1;
+  string host_user_id = 2;
+}
+
+// StartGameResponse is the response payload for starting a game
+message StartGameResponse {
+  bool success = 1;
+  string game_id = 2;
+}
+
+// ChatMessage represents a message in lobby chat
+message ChatMessage {
+  string id = 1;
+  string lobby_id = 2;
+  string user_id = 3;
+  string content = 4;
+  uint64 created_at = 5;
+}
+
+// SendChatMessageRequest is the request payload for sending a chat message
+message SendChatMessageRequest {
+  string lobby_id = 1;
+  string user_id = 2;
+  string content = 3;
+}
+
+// GetLobbyMessagesRequest is the request payload for retrieving chat history
+message GetLobbyMessagesRequest {
+  string lobby_id = 1;
+  uint32 limit = 2;
+  string before_message_id = 3;
+}
+
+// GetLobbyMessagesResponse is the response payload for retrieving chat history
+message GetLobbyMessagesResponse {
+  repeated ChatMessage messages = 1;
+  bool has_more = 2;
+} 

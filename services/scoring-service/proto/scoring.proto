@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package scoring;
+
+option go_package = "github.com/storywarz/scoring-service/proto";
+
+// ScoringService manages votes and scores for games
+service ScoringService {
+  // SubmitVote records a player's vote for an entry
+  rpc SubmitVote(SubmitVoteRequest) returns (SubmitVoteResponse) {}
+  
+  // GetVotes retrieves votes for an entry or round
+  rpc GetVotes(GetVotesRequest) returns (GetVotesResponse) {}
+  
+  // CalculateRoundScores computes scores for a completed round
+  rpc CalculateRoundScores(CalculateRoundScoresRequest) returns (CalculateRoundScoresResponse) {}
+  
+  // CalculateGameResults computes final scores for a completed game
+  rpc CalculateGameResults(CalculateGameResultsRequest) returns (CalculateGameResultsResponse) {}
+  
+  // GetPlayerStats retrieves scoring stats for a player
+  rpc GetPlayerStats(GetPlayerStatsRequest) returns (PlayerStats) {}
+  
+  // GetLeaderboard retrieves a leaderboard based on specified criteria
+  rpc GetLeaderboard(GetLeaderboardRequest) returns (GetLeaderboardResponse) {}
+}
+
+// Vote represents a player's vote on an entry
+message Vote {
+  string id = 1;
+  string game_id = 2;
+  string round_id = 3;
+  string entry_id = 4;
+  string voter_id = 5;
+  uint32 score = 6;
+  uint64 created_at = 7;
+}
+
+// RoundScore represents the scoring results for a player in a round
+message RoundScore {
+  string player_id = 1;
+  string round_id = 2;
+  uint32 score = 3;
+  uint32 vote_count = 4;
+  uint32 rank = 5;
+}
+
+// GameResult represents the final scoring results for a player in a game
+message GameResult {
+  string player_id = 1;
+  string game_id = 2;
+  uint32 total_score = 3;
+  uint32 winning_rounds = 4;
+  uint32 final_rank = 5;
+}
+
+// PlayerStats represents a player's scoring statistics
+message PlayerStats {
+  string player_id = 1;
+  uint32 games_played = 2;
+  uint32 games_won = 3;
+  uint32 total_score = 4;
+  uint32 rounds_won = 5;
+  double avg_score_per_round = 6;
+  uint64 last_updated = 7;
+}
+
+// LeaderboardEntry represents a single entry in a leaderboard
+message LeaderboardEntry {
+  string player_id = 1;
+  string display_name = 2;
+  uint32 score = 3;
+  uint32 rank = 4;
+  uint32 games_played = 5;
+  uint32 games_won = 6;
+}
+
+// SubmitVoteRequest is the request payload for submitting a vote
+message SubmitVoteRequest {
+  string game_id = 1;
+  string round_id = 2;
+  string entry_id = 3;
+  string voter_id = 4;
+  uint32 score = 5;
+}
+
+// SubmitVoteResponse is the response for a submit vote request
+message SubmitVoteResponse {
+  bool success = 1;
+  Vote vote = 2;
+}
+
+// GetVotesRequest is the request payload for retrieving votes
+message GetVotesRequest {
+  string round_id = 1;
+  string entry_id = 2;
+  string voter_id = 3;
+}
+
+// GetVotesResponse is the response for a get votes request
+message GetVotesResponse {
+  repeated Vote votes = 1;
+}
+
+// CalculateRoundScoresRequest is the request payload for calculating round scores
+message CalculateRoundScoresRequest {
+  string round_id = 1;
+}
+
+// CalculateRoundScoresResponse is the response for a calculate round scores request
+message CalculateRoundScoresResponse {
+  bool success = 1;
+  repeated RoundScore scores = 2;
+}
+
+// CalculateGameResultsRequest is the request payload for calculating game results
+message CalculateGameResultsRequest {
+  string game_id = 1;
+}
+
+// CalculateGameResultsResponse is the response for a calculate game results request
+message CalculateGameResultsResponse {
+  bool success = 1;
+  repeated GameResult results = 2;
+}
+
+// GetPlayerStatsRequest is the request payload for retrieving player stats
+message GetPlayerStatsRequest {
+  string player_id = 1;
+}
+
+// GetLeaderboardRequest is the request payload for retrieving a leaderboard
+message GetLeaderboardRequest {
+  LeaderboardTimeFrame time_frame = 1;
+  uint32 limit = 2;
+}
+
+// LeaderboardTimeFrame represents the time period for leaderboard calculations
+enum LeaderboardTimeFrame {
+  LEADERBOARD_TIME_FRAME_UNSPECIFIED = 0;
+  LEADERBOARD_TIME_FRAME_DAILY = 1;
+  LEADERBOARD_TIME_FRAME_WEEKLY = 2;
+  LEADERBOARD_TIME_FRAME_MONTHLY = 3;
+  LEADERBOARD_TIME_FRAME_ALL_TIME = 4;
+}
+
+// GetLeaderboardResponse is the response for a get leaderboard request
+message GetLeaderboardResponse {
+  repeated LeaderboardEntry entries = 1;
+  LeaderboardTimeFrame time_frame = 2;
+} 
