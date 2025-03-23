@@ -6,14 +6,14 @@ all: proto build
 # Generate protobuf code
 proto:
 	@echo "Generating protocol buffer code..."
-	@if not exist pkg\proto mkdir pkg\proto
-	@protoc --go_out=. --go-grpc_out=. proto\user.proto
+	@mkdir -p pkg/proto
+	@protoc --go_out=. --go-grpc_out=. proto/user.proto
 	@echo "Done."
 
 # Build the application
 build:
 	@echo "Building user-service..."
-	@go build -o bin/user-service.exe ./cmd/server
+	@go build -o bin/user-service ./cmd/server
 	@echo "Done."
 
 # Run tests
@@ -30,5 +30,5 @@ run:
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
-	@if exist bin\user-service.exe del /f bin\user-service.exe
+	@rm -f bin/user-service
 	@echo "Done." 

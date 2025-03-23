@@ -32,16 +32,30 @@ Check the `proto/user.proto` file for the complete API definition.
 ### Prerequisites
 
 - Go 1.22+
-- Protocol Buffer Compiler
-- PostgreSQL
-- Redis
+- Protocol Buffer Compiler (`protoc`)
+  - [Installation instructions](https://grpc.io/docs/protoc-installation/)
+- Go plugins for Protocol Buffers:
+  ```
+  go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+  ```
+- PostgreSQL (for production use)
+- Redis (for production use)
 
 ### Setup
 
 1. Clone the repository
-2. Generate Protocol Buffer code: `make proto` or run `scripts/generate_proto.bat`
-3. Build the service: `make build`
-4. Run the service: `make run`
+2. Generate Protocol Buffer code:
+   - Using make: `make proto`
+   - Using scripts:
+     - Windows: `scripts\generate_proto.bat`
+     - Unix/Linux: `./scripts/generate_proto.sh`
+3. Build the service:
+   - Using make: `make build`
+   - Manually: `go build -o bin/user-service ./cmd/server`
+4. Run the service:
+   - Using make: `make run`
+   - Manually: `go run ./cmd/server/main.go`
 
 ### Testing
 
@@ -49,6 +63,12 @@ Run the tests:
 
 ```
 make test
+```
+
+Or manually:
+
+```
+go test -v ./test/...
 ```
 
 ## Configuration
