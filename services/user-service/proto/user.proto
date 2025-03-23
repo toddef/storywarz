@@ -2,111 +2,76 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/storywarz/user-service/proto";
+option go_package = "github.com/storywarz/user-service/pkg/proto";
 
-// User service for managing user accounts and authentication
 service UserService {
-  // Register creates a new user account
-  rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  // GetUser retrieves a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
   
-  // Login authenticates a user and returns a session token
-  rpc Login(LoginRequest) returns (LoginResponse) {}
+  // CreateUser creates a new user
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {}
   
-  // GetUser retrieves user details by ID
-  rpc GetUser(GetUserRequest) returns (User) {}
+  // UpdateUser updates an existing user
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {}
   
-  // UpdateUser updates user profile information
-  rpc UpdateUser(UpdateUserRequest) returns (User) {}
-  
-  // ChangePassword updates a user's password
-  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
-  
-  // RequestPasswordReset initiates a password reset process
-  rpc RequestPasswordReset(RequestPasswordResetRequest) returns (RequestPasswordResetResponse) {}
-  
-  // CompletePasswordReset completes a password reset process
-  rpc CompletePasswordReset(CompletePasswordResetRequest) returns (CompletePasswordResetResponse) {}
+  // DeleteUser removes a user by ID
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse) {}
 }
 
-// User represents a user account
+// User represents a user in the system
 message User {
   string id = 1;
   string username = 2;
   string email = 3;
   string display_name = 4;
   string avatar_url = 5;
-  uint64 created_at = 6;
-  uint64 updated_at = 7;
+  int64 created_at = 6;
+  int64 updated_at = 7;
 }
 
-// RegisterRequest is the request payload for registering a new user
-message RegisterRequest {
-  string username = 1;
-  string email = 2;
-  string password = 3;
-  string display_name = 4;
-}
+// GetUser
 
-// RegisterResponse is the response for a registration request
-message RegisterResponse {
-  User user = 1;
-  string session_token = 2;
-}
-
-// LoginRequest is the request payload for user authentication
-message LoginRequest {
-  string username_or_email = 1;
-  string password = 2;
-}
-
-// LoginResponse is the response for a login request
-message LoginResponse {
-  User user = 1;
-  string session_token = 2;
-}
-
-// GetUserRequest is the request payload for retrieving a user by ID
 message GetUserRequest {
   string id = 1;
 }
 
-// UpdateUserRequest is the request payload for updating a user
+message GetUserResponse {
+  User user = 1;
+}
+
+// CreateUser
+
+message CreateUserRequest {
+  string username = 1;
+  string email = 2;
+  string display_name = 3;
+  string avatar_url = 4;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+// UpdateUser
+
 message UpdateUserRequest {
   string id = 1;
-  string display_name = 2;
-  string avatar_url = 3;
-  string email = 4;
+  optional string username = 2;
+  optional string email = 3;
+  optional string display_name = 4;
+  optional string avatar_url = 5;
 }
 
-// ChangePasswordRequest is the request payload for changing a password
-message ChangePasswordRequest {
-  string user_id = 1;
-  string current_password = 2;
-  string new_password = 3;
+message UpdateUserResponse {
+  User user = 1;
 }
 
-// ChangePasswordResponse is the response for a password change
-message ChangePasswordResponse {
-  bool success = 1;
+// DeleteUser
+
+message DeleteUserRequest {
+  string id = 1;
 }
 
-// RequestPasswordResetRequest is the request payload for initiating a password reset
-message RequestPasswordResetRequest {
-  string email = 1;
-}
-
-// RequestPasswordResetResponse is the response for a password reset request
-message RequestPasswordResetResponse {
-  bool success = 1;
-}
-
-// CompletePasswordResetRequest is the request payload for completing a password reset
-message CompletePasswordResetRequest {
-  string reset_token = 1;
-  string new_password = 2;
-}
-
-// CompletePasswordResetResponse is the response for completing a password reset
-message CompletePasswordResetResponse {
+message DeleteUserResponse {
   bool success = 1;
 } 
